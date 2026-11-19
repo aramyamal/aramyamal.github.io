@@ -1,3 +1,17 @@
+/* Self-hosted fonts (latin subset; both variable). Vollkorn 400/500 + italic 400, JetBrains Mono 400/500. */
+@font-face {
+  font-family: "Vollkorn"; font-style: normal; font-weight: 400 500; font-display: swap;
+  src: url("../fonts/vollkorn-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Vollkorn"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("../fonts/vollkorn-italic-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 500; font-display: swap;
+  src: url("../fonts/jetbrains-mono-latin.woff2") format("woff2");
+}
+
 @property --bg       { syntax: "<color>";  inherits: true; initial-value: #FAFAFA; }
 @property --fg       { syntax: "<color>";  inherits: true; initial-value: #2b2b2b; }
 @property --muted    { syntax: "<color>";  inherits: true; initial-value: #4a463f; }
@@ -39,6 +53,28 @@
 :root[data-theme="dark"] .credit-light { display: none; }
 :root[data-theme="dark"] .credit-dark { display: inline; }
 
+/* Background images. Only the active theme's image is referenced until main.js adds
+   .bg-all after page load, so the hidden one never competes with the first paint. */
+:root {
+  --img-l: url("../images/waterlilypond-light.webp");
+  --img-d: url("../images/waterlilies.webp");
+  --bg-l: var(--img-l);
+  --bg-d: none;
+}
+@media (min-width: 992px) {
+  :root {
+    --img-l: url("../images/waterlilypond-light-hd.webp");
+    --img-d: url("../images/waterlilies-hd.webp");
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg-l: none; --bg-d: var(--img-d); }
+}
+:root[data-theme="dark"] { --bg-l: none; --bg-d: var(--img-d); }
+:root.bg-all { --bg-l: var(--img-l); --bg-d: var(--img-d); }
+
+html:not(.js) .theme { display: none; }
+
 :root { --content: 946px; --gutter: 32px; }
 @media (max-width: 991px) { :root { --gutter: 24px; } }
 @media (max-width: 599px) { :root { --gutter: 16px; } }
@@ -46,9 +82,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
-
-  height: 100vh; height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh; min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg);
@@ -71,50 +105,43 @@ body::before, body::after {
 body::before {
   z-index: -2;
   background: linear-gradient(to right, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.48) 50%, rgba(255, 255, 255, 0.25) 100%),
-              url("../images/waterlilypond-light.webp") center / cover no-repeat;
+              var(--bg-l) center / cover no-repeat;
 }
 body::after {
   z-index: -1;
   opacity: var(--dark);
   background: linear-gradient(to right, rgba(8, 9, 8, 0.73) 0%, rgba(8, 9, 8, 0.68) 45%, rgba(8, 9, 8, 0.58) 100%),
-              url("../images/waterlilies.webp") no-repeat;
+              var(--bg-d) no-repeat;
 
   background-size: auto, auto max(168vh, calc(100vw * 1665 / 2200));
   background-position: 0 0, 50% 55%;
 }
 
-@media (min-width: 992px) {
-  body::before {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.48) 50%, rgba(255, 255, 255, 0.25) 100%),
-                      url("../images/waterlilypond-light-hd.webp");
-  }
-  body::after {
-    background-image: linear-gradient(to right, rgba(8, 9, 8, 0.73) 0%, rgba(8, 9, 8, 0.68) 45%, rgba(8, 9, 8, 0.58) 100%),
-                      url("../images/waterlilies-hd.webp");
-  }
-}
-
-.bar > span:first-child, .theme button, .theme .sep, footer > span {
+.bar .home, .theme button, .theme .sep, footer > span {
   background-image: linear-gradient(to right, var(--soft-l), var(--soft-r));
   background-attachment: fixed;
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
 
-.theme button, .contact a {
+.theme button, .contact a, .bar .home {
   box-shadow: inset 0 calc(-1 * var(--switch-w)) 0 transparent;
 }
 .theme button[aria-pressed="true"],
 .theme button:hover, .theme button:focus-visible,
-.contact a:hover, .contact a:focus-visible {
+.contact a:hover, .contact a:focus-visible,
+.bar .home:hover, .bar .home:focus-visible {
   color: var(--fg);
   font-weight: 500;
   box-shadow: inset 0 calc(-1 * var(--switch-w)) 0 var(--accent);
 }
 
-.theme button[aria-pressed="true"], .theme button:hover, .theme button:focus-visible {
+.theme button[aria-pressed="true"], .theme button:hover, .theme button:focus-visible,
+.bar .home:hover, .bar .home:focus-visible {
   background-image: linear-gradient(var(--fg), var(--fg));
 }
+
+.bar .home { text-decoration: none; transition: box-shadow 0.3s ease; }
 
 .bar {
   display: flex;
@@ -186,11 +213,11 @@ footer {
 
 @media (max-width: 991px) {
   .bar { padding-top: 1rem; padding-bottom: 1rem; }
-  main { padding-top: 0.5rem; padding-bottom: 1rem; min-height: 0; }
+  main { padding-top: 0.5rem; padding-bottom: 1rem; }
 }
 
 @media (max-width: 599px) {
-  .bar { position: sticky; top: 0; padding-top: max(1rem, env(safe-area-inset-top)); }
+  .bar { padding-top: max(1rem, env(safe-area-inset-top)); }
   footer { padding-bottom: max(1rem, env(safe-area-inset-bottom)); font-size: 0.68rem; }
   body::after { background-size: auto, auto max(152vh, calc(100vw * 1665 / 2200)); background-position: 0 0, 50% 41%; }
 }
